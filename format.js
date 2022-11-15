@@ -129,8 +129,14 @@ function formatTweet(t) {
         "<div class='tweet_avatar'><img src='"+avatar+"'></div>\n"+
         "<div class='tweet_header'>\n"+
         " <span class='tweet_displayname'>"+account.accountDisplayName+"</span> <span class='tweet_username'>@"+account.username+"</span> • <span class='tweet_timestamp'>"+t.date.toDateString()+"</span> <span class='tweet_id'>"+t.tweet.id_str+"</span>\n"+
-        "</div>\n"+
-        "<div class='tweet_body'>\n"+
+        "</div>\n";
+    if (t.tweet.in_reply_to_status_id_str != undefined && tweets_byid[t.tweet.in_reply_to_status_id_str] == undefined) {
+        var reply_to_url = "https://twitter.com/"+t.tweet.in_reply_to_screen_name+"/status/"+t.tweet.in_reply_to_status_id_str;
+        str += "<div class='tweet_reply'>\n"+
+            "↩️ <span class='tweet_replyid'><a href='"+reply_to_url+"'>"+reply_to_url+"</a></span>\n"+
+            "</div>";
+    }
+    str += "<div class='tweet_body'>\n"+
         "<p>"+text+"</p>\n"+
         "</div>\n";
     if (imgs.length > 0) {
