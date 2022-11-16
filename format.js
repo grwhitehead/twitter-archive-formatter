@@ -26,7 +26,8 @@ const optparse = require('optparse');
 
 var switches = [
     ['-v', '--verbose', 'verbose output'],
-    ['-d', '--dir PATH', 'twitter archive directory']
+    ['-d', '--dir PATH', 'twitter archive directory'],
+    ['-l', '--link', 'link to original tweet']
 ];
 
 var parser = new optparse.OptionParser(switches);
@@ -41,6 +42,11 @@ parser.on('verbose', function(opt) {
 var dir = ".";
 parser.on('dir', function(opt, value) {
     dir = value;
+});
+
+var link = false;
+parser.on('link', function(opt) {
+    link = true;
 });
 
 var args = parser.parse(process.argv);
@@ -99,7 +105,7 @@ for (var i = 0; i < tweets.length; i++) {
 if (verbose) console.log("found "+threads.length+" threads")
 
 var MEDIA_URL_PREFIX = "http://pbs.twimg.com/media/";
-var SELFQT_URL_PREFIX = "https://twitter.com/"+account.accountId+"/status/";
+var SELF_STATUS_URL_PREFIX = "https://twitter.com/"+account.accountId+"/status/";
 
 function formatTweet(t) {
     var text = t.tweet.full_text;
@@ -107,7 +113,7 @@ function formatTweet(t) {
     var selfqts = [];
     if (t.tweet.entities != undefined && t.tweet.entities.urls != undefined) {
         for (var i = 0; i < t.tweet.entities.urls.length; i++) {
-            var selfqt = tweets_byid[t.tweet.entities.urls[i].expanded_url.substr(SELFQT_URL_PREFIX.length)];
+            var selfqt = tweets_byid[t.tweet.entities.urls[i].expanded_url.substr(SELF_STATUS_URL_PREFIX.length)];
             if (selfqt) {
                 selfqts.push(selfqt);
                 text = text.replace(t.tweet.entities.urls[i].url, '');
@@ -153,16 +159,24 @@ function formatTweet(t) {
         }
         str += "</div>\n";
     }
+    if (link) {
+        var orig_url = SELF_STATUS_URL_PREFIX+t.tweet.id_str;
+        str += "<div class='tweet_original'>\n"+
+            "• <a href='"+orig_url+"'>"+orig_url+"</a> •\n"+
+            "</div>\n";
+    }
     str += "</div>\n";
     return str;
 }
 
 function formatThread(t) {
-    var str = formatTweet(t);
+    var str = "<div class='thread'>\n";
+    str += formatTweet(t);
     while (t.thread) {
         t = t.thread;
         str += formatTweet(t);
     }
+    str += "</div>";
     return str;
 }
 
@@ -179,17 +193,18 @@ console.log("<!doctype html>\n"+
             ".tweet_displayname { font-weight: bold }\n"+
             ".tweet_username { color: gray }\n"+
             ".tweet_timestamp { color: gray }\n"+
-            ".tweet_id { display: none }\n"+
+            ".tweet_id { float: right; display: none }\n"+
             ".tweet_body { margin-top: 2%; margin-left: 60px }\n"+
             ".tweet_imgs { margin-top: 2% }\n"+
             //".tweet_imgs { margin-top: 2%; margin-left: 60px }\n"+
             ".tweet_img { width: 100% }\n"+
             ".tweet_qts { margin-top: 2% }\n"+
             //".tweet_qts { margin-top: 2%; margin-left: 60px }\n"+
+            ".tweet_original { margin-top: 2%; text-align: center; font-size: x-small }\n"+
             "  </style>\n"+
             " </head>\n"+
             " <body>\n"+
-            "  <div class='thread'>");
+            "  <ul>");
 for (var i = 0; i < threads.length; i++) {
     t = threads[i];
     if (ids.length == 0 || ids.indexOf(t.tweet.id_str) >= 0) {
@@ -197,6 +212,6 @@ for (var i = 0; i < threads.length; i++) {
         console.log(formatThread(t));
     }
 }
-console.log("  </div>\n"+
+console.log("  </ul>\n"+
             " </body>\n"+
             "</html>")
