@@ -36,7 +36,7 @@ Make animated gifs for mp4s that were originally animated gifs
 
 Generate output suitable for merging with microblogging content from other sources
 ```
-% node format.js --timestampids --styleprefix SOME_PREFIX -d PATH_TO_MASTODON_ARCHIVE
+% node format.js --timestampids --styleprefix SOME_PREFIX -d PATH_TO_TWITTER_ARCHIVE
 ```
 
 ## Requirements
